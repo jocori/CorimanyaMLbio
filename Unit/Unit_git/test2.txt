@@ -1,3 +1,7 @@
 Hello
 Here's a change
+
 Another change This file is going to be so broken after this!
+
+Another change (I'm changing this line to create a conflict, by:Anahi)
+

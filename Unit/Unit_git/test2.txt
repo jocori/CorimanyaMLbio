@@ -1,3 +1,6 @@
+#DAN: Grading for git assignment
+#You did great, S+. Looks like you did everything. 
+
 Hello
 Here's a change
 

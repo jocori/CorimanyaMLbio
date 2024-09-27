@@ -1,9 +1,9 @@
-##Set working directory
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/Unit_CART")
-##Read in breast cancer data
-data<- read.csv("data.csv")
+data<- read.csv("Abalone_data.csv")
 head(data)
 str(data)
+is.na(data)
+
 colnames <- colnames(data)
 for (i in colnames) {
   ##Check if the column is numeric
@@ -13,7 +13,7 @@ for (i in colnames) {
   }
 }
 
-##Check correlation between each pair of variables by building a correlation matrix
+##Check correlation betweeen each pair of variables by building a correlation matrix
 for (i in colnames) {
   for (j in colnames) {
     # Check if both columns are numeric and not the same column
@@ -25,9 +25,6 @@ for (i in colnames) {
     }
   }
 }
-
-##Visualize correlation
-install.packages("corrplot")  ##Install corrplot package
 library(corrplot)             ##Load the corrplot package
 
 ##Calculate the correlation matrix for numeric columns
@@ -38,20 +35,4 @@ correlation_matrix <- cor(numeric_data)
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,  ##Text label color and rotation
          type = "upper")                 ##Only show the upper triangle of the matrix
-
-##Save heatmap to local device
-pdf("correlation_matrix.pdf")
-corrplot(correlation_matrix, method = "color", tl.col = "black", tl.srt = 45, addCoef.col = "black", type = "upper")
-dev.off()
-
-##Missing values?
-is.na(data)
-
-##Remove ID and worst columns
-head(data)
-str(data)
-data<- data[ , -c(1)] #Remove ID column
-##Remove columns that contain the word "worst" in their names
-data <- data[ , !grepl("worst", names(data))]
-
-str(data)
+##whole weight highly correlated witha few other variable...keep an eye on this one

@@ -46,3 +46,12 @@ dev.off()
 
 ##Missing values?
 is.na(data)
+
+##Remove ID and worst columns
+head(data)
+str(data)
+data<- data[ , -c(1)] #Remove ID column
+##Remove columns that contain the word "worst" in their names
+data <- data[ , !grepl("worst", names(data))]
+
+str(data)

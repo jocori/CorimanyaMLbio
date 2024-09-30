@@ -70,3 +70,56 @@ ab_fm_pred<-predict(ab_fm, type = "class")
 table(ab_fm_pred, ab_cal$Rings)
 sum(ab_fm_pred!=ab_cal$Rings)/dim(ab_cal)[1] #0% error...overfitted!
 prp(ab_fm) #plot
+
+##K-fold cross validation
+nfolds<- 10
+folds<-rep(1:nfolds, length.out = dim(ab_cal)[1])
+xerr <- NA*numeric(nfolds)
+
+for (i in 1:nfolds){
+  mod<-rpart(Rings~., data = ab_cal[folds !=i,], method = "class")
+  pred<- predict(mod, ab_cal[folds == i,], type = "class")
+  xerr[i] <- sum(pred!=ab_cal$Rings[folds==i])/
+    sum(folds == i)
+}
+mean(xerr) #0.7531949
+
+##K-fold cross validation (full tree)
+nfolds<- 10
+folds<-rep(1:nfolds, length.out = dim(ab_cal)[1])
+xerr <- NA*numeric(nfolds)
+
+for (i in 1:nfolds){
+  mod<-rpart(Rings~., data = ab_cal[folds !=i,], method = "class",
+             control = rpart.control(minsplit = 1, cp = 0))
+  pred<- predict(mod, ab_cal[folds == i,], type = "class")
+  xerr[i] <- sum(pred!=ab_cal$Rings[folds==i])/
+    sum(folds == i)
+}
+mean(xerr) #0.8096996
+
+#within sample simple: 0.7353129
+#within sample complex: 0
+#out of sample simple: 0.7531949
+#out of sample complex: 0.8096996
+
+## The out of sample error is very slightly lower than 
+##the within sample error rate for the simple model. For the full tree,
+##the out of sample error rate from cross-validation was higher.
+
+##The within sample error rate was lower for the full tree.
+
+##The out-of-sample error rate was lower for the simple tree.
+
+##The complex tree did perfectly within sample and very badly out of sample.
+## This suggests it is overfit. The simple tree did equally poorly within sample 
+##and out-of-sample. This suggests that the default tree is underfit.
+##The full tree is overly complex.
+
+##The Abalone dataset showed a similar pattern to the breast cancer data 
+##with regard to general patterns among within and out-of-sample 
+##error rates and the simple and complex models. However,
+##the error rates for the abalone dataset were overall MUCH higher
+##than in the breast cancer dataset.
+
+

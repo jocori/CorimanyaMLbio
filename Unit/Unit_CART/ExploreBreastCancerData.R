@@ -55,3 +55,28 @@ data<- data[ , -c(1)] #Remove ID column
 data <- data[ , !grepl("worst", names(data))]
 
 str(data)
+
+##Split into test and training data
+set.seed(123)
+d_perm<-data[sample(dim(data)[1],dim(data)[1], replace = FALSE),]
+d_val<-d_perm[1:floor(0.75*(dim(data)[1])),]
+d_test<-d_perm[(floor(0.75*(dim(data)[1]))+1):(dim(data)[1]),]
+
+##Fit CART
+install.packages("rpart") #package for fitting carts
+library(rpart)
+m_d<-rpart(diagnosis~., data = d_val, 
+           method = "class") #because it's a classification tree
+print(m_d)
+m_d_pred<-predict(m_d, type = "class")
+table(m_d_pred, d_val$diagnosis)
+sum(m_d_pred!=d_val$diagnosis)/dim(d_val)[1]
+
+##Build full tree
+m_f<-rpart(diagnosis~., data = d_val, 
+           method = "class",
+           control = rpart.control(cp=0, minsplit=1))
+print(m_f)
+m_f_pred<-predict(m_f, type = "class")
+table(m_f_pred, d_val$diagnosis)
+sum(m_f_pred!=d_val$diagnosis)/dim(d_val)[1]

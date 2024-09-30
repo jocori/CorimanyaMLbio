@@ -31,8 +31,42 @@ library(corrplot)             ##Load the corrplot package
 numeric_data <- data[, sapply(data, is.numeric)]
 correlation_matrix <- cor(numeric_data)
 
+
 ##Plot the correlation matrix as a heatmap
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,  ##Text label color and rotation
          type = "upper")                 ##Only show the upper triangle of the matrix
 ##whole weight highly correlated witha few other variable...keep an eye on this one
+
+##Split data into calibration validation data
+set.seed(123)
+ab_perm <- data[sample(dim(data)[1],dim(data)[1], replace = FALSE),]
+ab_cal <- ab_perm[1:floor(0.75*(dim(data)[1])),]
+ab_val <- ab_perm[(floor(0.75*(dim(data)[1]))+1):(dim(data)[1]),]
+write.csv(ab_val, "ab_val.csv") #write to folder so I can pull later for evaluation
+write.csv(ab_cal, "ab_cal.csv")
+
+##Fit a CART with default algorithmic parameters to validation dataset
+library(rpart)
+ab_m<-rpart(Rings~., data = ab_cal, method = "class")
+summary(ab_m)
+print(m_d)
+#examine error
+ab_m_pred<-predict(ab_m, type = "class")
+table(ab_m_pred, ab_cal$Rings)
+sum(ab_m_pred!=ab_cal$Rings)/dim(ab_cal)[1] #74% error....not good!
+##plot the tree
+install.packages("rpart.plot")
+library(rpart.plot)
+prp(ab_m) #didn't predict most of the potential number of rings
+#abalone in this dataset can have from 1 to 29 rings
+
+##Fit a full CART
+ab_fm<-rpart(Rings~.,data = ab_cal, method = "class", 
+      control = rpart.control(minsplit = 1, cp = 0))
+summary(ab_fm)
+print(ab_fm)
+ab_fm_pred<-predict(ab_fm, type = "class")
+table(ab_fm_pred, ab_cal$Rings)
+sum(ab_fm_pred!=ab_cal$Rings)/dim(ab_cal)[1] #0% error...overfitted!
+prp(ab_fm) #plot

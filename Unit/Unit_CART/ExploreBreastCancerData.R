@@ -5,6 +5,7 @@ data<- read.csv("data.csv")
 head(data)
 str(data)
 colnames <- colnames(data)
+set.seed(101)
 for (i in colnames) {
   ##Check if the column is numeric
   if (is.numeric(data[[i]])) {
@@ -27,7 +28,7 @@ for (i in colnames) {
 }
 
 ##Visualize correlation
-install.packages("corrplot")  ##Install corrplot package
+#install.packages("corrplot")  ##Install corrplot package
 library(corrplot)             ##Load the corrplot package
 
 ##Calculate the correlation matrix for numeric columns
@@ -55,22 +56,21 @@ data<- data[ , -c(1)] #Remove ID column
 data <- data[ , !grepl("worst", names(data))]
 
 str(data)
-
+data<-data[,-c(22)]
 ##Split into test and training data
-set.seed(123)
 d_perm<-data[sample(dim(data)[1],dim(data)[1], replace = FALSE),]
 d_val<-d_perm[1:floor(0.75*(dim(data)[1])),]
 d_test<-d_perm[(floor(0.75*(dim(data)[1]))+1):(dim(data)[1]),]
 
 ##Fit CART
-install.packages("rpart") #package for fitting carts
+#install.packages("rpart") #package for fitting carts
 library(rpart)
 m_d<-rpart(diagnosis~., data = d_val, 
            method = "class") #because it's a classification tree
 print(m_d)
 m_d_pred<-predict(m_d, type = "class")
 table(m_d_pred, d_val$diagnosis)
-sum(m_d_pred!=d_val$diagnosis)/dim(d_val)[1]
+sum(m_d_pred!=d_val$diagnosis)/dim(d_val)[1] #0.05164319
 
 ##Build full tree
 m_f<-rpart(diagnosis~., data = d_val, 
@@ -79,4 +79,56 @@ m_f<-rpart(diagnosis~., data = d_val,
 print(m_f)
 m_f_pred<-predict(m_f, type = "class")
 table(m_f_pred, d_val$diagnosis)
-sum(m_f_pred!=d_val$diagnosis)/dim(d_val)[1]
+sum(m_f_pred!=d_val$diagnosis)/dim(d_val)[1] #0
+
+##K-fold cross validation (manual) on simple model
+numgp <- 10 #number of folds
+gp <- rep(1:numgp, length.out=dim(d_val)[1])
+xerrs<-NA*numeric(numgp)
+for (counter in 1:numgp) {
+  #fit model on all data excluding one group
+  m<-rpart(diagnosis~., data = d_val[gp!=counter,], method = "class")
+  #get predictions on the left out group and get error rates
+  pred <- predict(m,d_val[gp == counter,], type = "class")
+  xerrs[counter] <- sum(pred!=d_val$diagnosis[gp==counter])/
+    sum(gp==counter)
+}
+mean(xerrs) #0.08925803
+
+## K-fold cross validation on complex model
+numgp <- 10 #number of folds
+gp <- rep(1:numgp, length.out=dim(d_val)[1])
+xerrs_f<-NA*numeric(numgp)
+for (counter in 1:numgp) {
+  #fit model on all data excluding one group
+  m<-rpart(diagnosis~., data = d_val[gp!=counter,], method = "class",
+           control = rpart.control(minsplit = 1, cp = 0))
+  #get predictions on the left out group and get error rates
+  pred <- predict(m,d_val[gp == counter,], type = "class")
+  xerrs_f[counter] <- sum(pred!=d_val$diagnosis[gp==counter])/
+    sum(gp==counter)
+}
+xerrs_f
+mean(xerrs_f) #0.103433
+
+##Pruning
+##Plot CP on full tree
+plotcp(m_f)
+##print CP to see that numerically
+printcp(m_f)
+
+##cp of 0.018 is ideal
+m_f_5 <- rpart(diagnosis~., data = d_val, method = "class",
+               control = rpart.control(cp = 0.018, minsplit = 1))
+xerrs_5<-NA*numeric(numgp)
+for (counter in 1:numgp) {
+  #fit model on all data excluding one group
+  m<-rpart(diagnosis~., data = d_val[gp!=counter,], method = "class",
+           control = rpart.control(minsplit = 1, cp = 0.018))
+  #get predictions on the left out group and get error rates
+  pred <- predict(m,d_val[gp == counter,], type = "class")
+  xerrs_5[counter] <- sum(pred!=d_val$diagnosis[gp==counter])/
+    sum(gp==counter)
+}
+xerrs_5
+mean(xerrs_5) #0.07524917

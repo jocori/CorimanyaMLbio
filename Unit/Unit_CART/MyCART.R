@@ -41,7 +41,7 @@ corrplot(correlation_matrix, method = "color",
 ##Split data into calibration validation data
 set.seed(123)
 ab_perm <- data[sample(dim(data)[1],dim(data)[1], replace = FALSE),]
-ab_cal <- ab_perm[1:floor(0.75*(dim(data)[1])),]
+ab_cal <- ab_perm[1:floor(0.75*(dim(data)[1])),] #calibration
 ab_val <- ab_perm[(floor(0.75*(dim(data)[1]))+1):(dim(data)[1]),]
 write.csv(ab_val, "ab_val.csv") #write to folder so I can pull later for evaluation
 write.csv(ab_cal, "ab_cal.csv")
@@ -122,4 +122,22 @@ mean(xerr) #0.8096996
 ##the error rates for the abalone dataset were overall MUCH higher
 ##than in the breast cancer dataset.
 
+###Day 4:Pruning
+plotcp(ab_fm)
+printcp(ab_fm)
 
+xerr_pr <- NA*numeric(nfolds)
+
+for (i in 1:nfolds){
+  mod<-rpart(Rings~., data = ab_cal[folds !=i,], method = "class",
+             control = rpart.control(minsplit = 1, cp = 0.002))
+  pred<- predict(mod, ab_cal[folds == i,], type = "class")
+  xerr_pr[i] <- sum(pred!=ab_cal$Rings[folds==i])/
+    sum(folds == i)
+}
+mean(xerr_pr) #0.7289341
+
+##So far, the pruned classification tree is the best model. 
+##From K-fold cross validation, the out of sample error rate was
+##0.7289341, which is lower than the out of sample error for the full 
+##tree (0.80) and for the simple tree (0.75)

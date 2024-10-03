@@ -3,7 +3,10 @@ data<- read.csv("Abalone_data.csv")
 head(data)
 str(data)
 is.na(data)
-
+set.seed(123)
+##Make rings a factor so it can be classified...it's a count with a max value so this seems ok
+data$Rings<- as.factor(data$Rings)
+#make histogram of each column
 colnames <- colnames(data)
 for (i in colnames) {
   ##Check if the column is numeric
@@ -39,7 +42,7 @@ corrplot(correlation_matrix, method = "color",
 ##whole weight highly correlated witha few other variable...keep an eye on this one
 
 ##Split data into calibration validation data
-set.seed(123)
+
 ab_perm <- data[sample(dim(data)[1],dim(data)[1], replace = FALSE),]
 ab_cal <- ab_perm[1:floor(0.75*(dim(data)[1])),] #calibration
 ab_val <- ab_perm[(floor(0.75*(dim(data)[1]))+1):(dim(data)[1]),]
@@ -87,16 +90,16 @@ mean(xerr) #0.7531949
 ##K-fold cross validation (full tree)
 nfolds<- 10
 folds<-rep(1:nfolds, length.out = dim(ab_cal)[1])
-xerr <- NA*numeric(nfolds)
+xerr_f <- NA*numeric(nfolds)
 
 for (i in 1:nfolds){
   mod<-rpart(Rings~., data = ab_cal[folds !=i,], method = "class",
              control = rpart.control(minsplit = 1, cp = 0))
   pred<- predict(mod, ab_cal[folds == i,], type = "class")
-  xerr[i] <- sum(pred!=ab_cal$Rings[folds==i])/
+  xerr_f[i] <- sum(pred!=ab_cal$Rings[folds==i])/
     sum(folds == i)
 }
-mean(xerr) #0.8096996
+mean(xerr_f) #0.8096996
 
 #within sample simple: 0.7353129
 #within sample complex: 0
@@ -141,3 +144,36 @@ mean(xerr_pr) #0.7289341
 ##From K-fold cross validation, the out of sample error rate was
 ##0.7289341, which is lower than the out of sample error for the full 
 ##tree (0.80) and for the simple tree (0.75)
+
+##Bagging
+
+### Question: Why doesn't resampling dataset break up associations among variables? 
+### In other words, how can the algorithm predict y based off of x1, x2, and x3 if the dataset is resampled (i.e., if order is random)?
+library(ipred)
+ab_b<- bagging(Rings~.,data = ab_cal, nbagg = 500, coob = TRUE, 
+               method = "class",
+               control = rpart.control(minsplit = 1,cp = 0, xval=0), 
+               aggregation = "majority")
+ab_b
+ab_b$err #0.7598978
+pred_bag<-predict(ab_b, newdata= ab_cal, type = "class", aggregation = "majority")
+sum(pred_bag!=ab_cal$Rings)/dim(ab_cal)[1] #0....this doesn't seem right
+
+xerr_b <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds) {
+  ab_b <- bagging(Rings~.,ab_cal[folds != counter,], nbagg = 500, coon = TRUE, method = "class",
+                  control = rpart.control(minsplit = 1, cp = 0, xval = 0),
+                  aggregation = "majority")
+  pred_bag<- predict(ab_b, ab_cal[folds == counter,],type = "class")
+  xerr_b[counter] <- sum(pred_bag!=ab_cal$Rings[folds == counter])/
+    sum(folds == i)
+}
+mean(xerr_b) #0.7661342
+mean(xerr_pr) #0.7289341
+mean(xerr_f) #0.8068293
+mean(xerr) #0.7531949
+### Bagging performed worse than all models aside from the full tree. 
+### The best model so far is the pruned tree, which still isn't good (72.9% error)
+
+## Random Forest

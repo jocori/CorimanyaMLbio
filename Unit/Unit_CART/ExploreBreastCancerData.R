@@ -132,3 +132,47 @@ for (counter in 1:numgp) {
 }
 xerrs_5
 mean(xerrs_5) #0.07524917
+
+## Day 5: Bagging
+#install.packages("ipred")
+library(ipred)
+## ipred can't handle character, so convert diagnosis to factor
+d_val$diagnosis <- as.factor(d_val$diagnosis)
+bagres<-bagging(diagnosis~., 
+        data = d_val, nbagg=500, coob = TRUE, method = "class",
+        control = rpart.control(minsplit = 1, cp = 0, xval=0),
+        aggregation = "majority")
+## k-fold cross validation
+numgp <-10
+gp<-rep(1:numgp, length.out = dim(d_val)[1])
+xerr_b <- NA*numeric(numgp)
+
+for (counter in 1:numgp) {
+  m<-bagging(diagnosis~., 
+             data = d_val[gp!=counter,], nbagg=500, coob = TRUE, method = "class",
+             control = rpart.control(minsplit = 1, cp = 0, xval=0),
+             aggregation = "majority")
+  pred<- predict(m, d_val[gp == counter,], type = "class", aggregation = "majority")
+  xerr_b[counter] <- sum(pred!=d_val$diagnosis[gp == counter])/sum(gp == counter)
+}
+mean(xerr_b) #0.06101883
+
+## Random forest
+#install.packages("randomForest")
+library(randomForest)
+m_rf<-randomForest(diagnosis~., data = d_val, ntree= 1000)
+plot(m_rf) #information on how many trees you really need
+m_rf
+
+#k-fold cross validation on random forest
+xerr_rf <- NA*numeric(numgp)
+
+for (counter in 1:numgp) {
+  m<-randomForest(diagnosis~.,
+                  data = d_val[gp!=counter,], ntree = 1000)
+  pred <- predict(m, newdata = d_val[gp == counter,], type = "class")
+  xerr_rf[counter] <- sum(pred!=d_val$diagnosis[gp == counter])/sum(gp == counter)
+}
+mean(xerr_rf) #0.07264673
+
+##random forest is worse than bagging, but better than pruned, simple, and full tree

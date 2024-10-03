@@ -169,7 +169,8 @@ xerr_rf <- NA*numeric(numgp)
 
 for (counter in 1:numgp) {
   m<-randomForest(diagnosis~.,
-                  data = d_val[gp!=counter,], ntree = 1000)
+                  data = d_val[gp!=counter,], ntree = 1000, 
+                  control = rpart.control(minsplit = 1,cp=0,xval=0))
   pred <- predict(m, newdata = d_val[gp == counter,], type = "class")
   xerr_rf[counter] <- sum(pred!=d_val$diagnosis[gp == counter])/sum(gp == counter)
 }

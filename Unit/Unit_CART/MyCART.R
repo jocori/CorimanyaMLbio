@@ -221,13 +221,13 @@ mean(xerr_xgb) #0.3916828
 ## None of the methods I've tried in the CART unit are totally appropriate for
 ## predicting the protein site on yeast cells.
 
-mean(xerr)
-mean(xerr_f)
-mean(xerr_b)
-mean(xerr_pr)
+mean(xerr)#0.4392777
+mean(xerr_f) #0
+mean(xerr_b) #0.4267535
+mean(xerr_pr) #0.4276384
 mean(xerr_rf) #0.3782014, best model!
-mean(xerr_ada)#0.40
-mean(xerr_xgb)#0.39
+mean(xerr_ada) #0.40
+mean(xerr_xgb) #0.39
 
 ############# Testing best model on test dataset!! #############
 testpred_rf<-predict(mrf,y_vault[,1:8],type="class")

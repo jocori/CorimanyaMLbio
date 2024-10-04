@@ -229,7 +229,7 @@ mean(xerr_rf) #0.3782014, best model!
 mean(xerr_ada)#0.40
 mean(xerr_xgb)#0.39
 
-### Testing best model on test dataset!!
+############# Testing best model on test dataset!! #############
 testpred_rf<-predict(mrf,y_vault[,1:8],type="class")
 sum(testpred_rf!=y_vault$localization_site)/dim(y_vault)[1] #0.3746631
 

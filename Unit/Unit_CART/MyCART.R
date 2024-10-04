@@ -1,0 +1,167 @@
+## Set working directory to class folder
+setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/Unit_CART")
+#set seed for reproducibility
+set.seed(123)
+##Load packages
+library(corrplot) #for plotting correlation matrix
+library(rpart) #to fit CARTs
+library(rpart.plot) #for plotting classification trees
+library(ipred)
+library(randomForest)
+
+## Import yeast data for assignment
+yeast<-read.csv("yeast.data.csv")
+##ensure response is a factor
+yeast$localization_site <- as.factor(yeast$localization_site)
+#inspect data
+head(yeast)
+dim(yeast)
+#make a histogram of each numeric variable
+colnames <- colnames(yeast)
+for (i in colnames) {
+  ##Check if the column is numeric
+  if (is.numeric(yeast[[i]])) {
+    #create a histogram for the numeric column
+    hist(yeast[[i]], main = paste("Histogram of", i), xlab = i)
+  }
+}
+
+## Examine variables for multicollinearity using correlation matrix
+numeric_data <- yeast[, sapply(yeast, is.numeric)]
+correlation_matrix <- cor(numeric_data)
+
+##Plot the correlation matrix as a heatmap
+corrplot(correlation_matrix, method = "color", 
+         tl.col = "black", tl.srt = 45,
+         type = "upper")                 
+## All variables are quite different! Only need to remove the ID column
+yeast<-yeast[,-1]
+
+##Split data into testing and training data
+y_perm <- yeast[sample(dim(yeast)[1],dim(yeast)[1], replace = FALSE),]
+y_train <- y_perm[1:floor(0.75*(dim(yeast)[1])),]
+y_vault <- y_perm[(floor(0.75*(dim(yeast)[1]))+1):(dim(yeast)[1]),]
+
+## Fit default CART to training data
+m <- rpart(localization_site~.,y_train, method = "class")
+m
+m_pred <- predict(m, type = "class")
+table(m_pred, y_train$localization_site) #table of predicted vs real 
+sum(m_pred!=y_train$localization_site)/dim(y_train)[1] #error = 0.4043127
+# plot the tree
+prp(m)
+
+## Fit a full CART
+m_f <- rpart(localization_site~.,y_train, method = "class",control =
+             rpart.control(minsplit = 1,cp = 0))
+m_f
+prp(m_f)
+#predicted values
+mf_pred <- predict(m_f, type = "class")
+table(mf_pred, y_train$localization_site)
+sum(mf_pred!=y_train$localization_site)/dim(y_train)[1] #0
+
+## K-Fold Cross Validation
+nfolds <- 10
+folds <- rep(1:nfolds, length.out = dim(y_train)[1])
+x_err <- NA*numeric(nfolds)
+x_err_f <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  m <- rpart(localization_site~.,y_train[folds!=counter,], method = "class")
+  mf<- rpart(localization_site~.,y_train[folds!=counter,], method = "class",control =
+                     rpart.control(minsplit = 1,cp = 0))
+  m_pred <- predict(m, y_train[ folds== counter,],type = "class")
+  mf_pred <- predict(m_f, y_train[folds==counter,] ,type = "class")
+  x_err[counter] <- sum(m_pred!=y_train$localization_site[folds == counter])/
+    sum(folds == counter)
+  x_err_f[counter] <- sum(mf_pred!=y_train$localization_site[folds == counter])/
+    sum(folds == counter)
+}
+mean(x_err) #0.4392777
+mean(x_err_f) #0
+
+##Error summary
+#Within sample tree:0.4043127
+#Within sample full tree: 0
+#Out of sample tree: 0.4392777
+#Out of sample full tree: 0
+
+## The out of sample error is higher than the within sample error. For the full tree,
+## The out of sample error and within sample error are each 0.
+## This suggests that the full tree is vastly overfit!
+## The simple tree performed similarly within sample and out of sample, 
+## though the error rate is slightly lower within sample. 
+
+## Compared to the breast cancer data, the fit is much worse for the yeast data.
+## The complex trees are so overfit that cross validaiton didn't work. 
+## Also, the simple trees produced a 40% error rate compared to <10% error rates
+## overall for the breast cancer data. In both the yeast and breast cancer data,
+## The within sample error rate was better for the simple tree.
+
+
+## Pruning
+plotcp(m_f)
+printcp(m_f)
+x_err_pr <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  mpr <-rpart(localization_site~.,y_train[folds!=counter,],method = "class",
+              control = rpart.control(minsplit = 1, cp = 0.0049))
+  pred_pr <- predict(mpr, y_train[folds == counter,], type = "class")
+  x_err_pr[counter] <- sum(pred_pr!=y_train$localization_site[counter == folds])/
+    sum(folds == counter)
+}
+mean(x_err_pr) #0.4276384
+## So far, my best model is the pruned tree if you only consider cross-validation results
+## and if you note that the error was lowest for the full tree, BUT it was 0 error
+## indicating overfitting. Therefore, I would not call that model the best
+## even though it is "perfect".
+
+## Bagging
+mb<-bagging(localization_site~.,y_train, nbagg = 500, coob = TRUE,
+        method = "class",
+        control = rpart.control(minsplit = 1, cp = 0, xval = 0),
+        aggregation = "majority")
+mb$err #0.4267745
+pred_b <- predict(mb, y_train, type = "class", aggregation = "majority")
+sum(pred_b!=y_train$localization_site)/dim(y_train)[1] #0
+
+x_err_b <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  mb <- bagging(localization_site~.,y_train[counter!=folds,], nbagg = 500, coob = TRUE,
+                method = "class",
+                control = rpart.control(minsplit = 1, cp = 0, xval = 0),
+                aggregation = "majority")
+  pred_b <- predict(mb, y_train[counter == folds,], type = "class", 
+                    aggregation = "majority")
+  x_err_b[counter]<-sum(pred_b!=y_train$localization_site[folds == counter])/
+    sum(folds == counter)
+}
+mean(x_err_b) #0.4267535
+
+## The bagging model performed slightly better than the pruned tree model.
+## The out of sample error after cross validation was 42.6735% in the bagging model and 42.7638%
+## in the pruned tree (the next best model).
+
+# Random Forest
+mrf <- randomForest(localization_site~.,y_train, ntrees = 1000)
+mrf$err.rate
+mrf_pred<-predict(mrf, y_train, type = "class")
+sum(mrf_pred!=y_train$localization_site)/dim(y_train)[1] #0.007187781
+
+x_err_rf <-NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  mrf <- randomForest(localization_site~.,y_train[folds!=counter,], ntrees = 1000)
+  mrf_pred<-predict(mrf, y_train[folds == counter,], type = "class")
+  x_err_rf[counter] <-sum(mrf_pred!=y_train$localization_site[folds == counter])/
+    sum(folds == counter)
+}
+mean(x_err_rf) #0.3782014
+
+## The random forest model is the best so far if you do not consider the "perfect" (overfit)
+## Complex tree. At 37.82% error after cross validation, classification errors
+## happen less frequently than in the next best model which was achieved through bagging
+## and had an error rate of 42.67%

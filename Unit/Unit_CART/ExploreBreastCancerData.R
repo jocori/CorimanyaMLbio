@@ -229,3 +229,10 @@ for (counter in 1:numgp){
 }
 
 mean(xgb_error) #0.05636766
+
+##### OPEN THE VAULT! my best breast cancer model was adaptive boosting
+testpred_ada<-predict(m_ada, d_test[,2:dim(d_val)[2]], type = "class")$class
+sum(testpred_ada!=d_test$diagnosis)/dim(d_test)[1] #0.02797203
+
+
+

@@ -6,8 +6,11 @@ set.seed(123)
 library(corrplot) #for plotting correlation matrix
 library(rpart) #to fit CARTs
 library(rpart.plot) #for plotting classification trees
-library(ipred)
-library(randomForest)
+library(ipred) #bagging
+library(randomForest) #random forests
+library(adabag) #adaptive boosting
+library(xgboost) #gradient boosting
+
 ## Import yeast data for assignment
 yeast<-read.csv("yeast.data.csv")
 
@@ -171,3 +174,49 @@ mean(x_err_rf) #0.3782014
 ##which was achieved through bagging and had an error rate of 42.67%.
 
 ## Boosting
+### adaptive boosting
+mada <- boosting(localization_site~.,y_train)
+mada_pred <- predict(mada,y_train[,1:8],type = "class")$class
+sum(mada_pred!=y_train$localization_site)/dim(y_train)[1] #0.3674753
+
+## x-val adaptive boosting
+xerr_ada <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  mada <- boosting(localization_site~.,y_train[counter != folds,],mfinal =150)
+  mada_pred <- predict(mada,y_train[counter == folds,],type = "class")$class
+  xerr_ada[counter]<-sum(mada_pred!=y_train$localization_site[counter ==folds])/
+    sum(counter == folds)
+}
+mean(xerr_ada) #0.4051239
+
+### extreme gradient boosting
+num_classes <- length(unique(y_val))
+x_val<-as.matrix(y_train[,1:8])
+y_val<-as.integer(y_train[,9])-1
+mxg<-xgboost(data = x_val, label = y_val, max_depth =7,eta=0.15,nrounds = 40,
+             objective="multi:softmax",num_class = num_classes,nthread=2,verbose=2)
+mxg_pred<-predict(mxg,x_val)
+# Calculate classification error
+xgb_error <- sum(mxg_pred != y_val) / length(y_val)
+xgb_error #0.1248877
+
+# x-val extreme gradient boosting
+xerr_xgb <- NA*numeric(nfolds)
+
+for (counter in 1:nfolds){
+  mxg<-xgboost(data = x_val[counter!=folds,], label = y_val[counter!=folds], 
+               max_depth =6,eta=0.1,nrounds = 35,
+               objective="multi:softmax",
+               num_class = num_classes,nthread=1,verbose=2)
+  mxg_pred<-predict(mxg,x_val[counter ==folds,])
+  # Calculate classification error
+  xerr_xgb[counter] <- sum(mxg_pred != y_val[counter == folds]) / sum(counter == folds)
+}
+mean(xerr_xgb) #0.3916828
+
+## Extreme gradient boosting works on this dataset better than most other algorithms
+## Aside from random forests, which is the best algorithm for this dataset.
+## However, given that the best algorithm still misclassifies the training data 37% of the time
+## None of the methods I've tried in the CART unit are totally appropriate for
+## predicting the protein site on yeast cells.

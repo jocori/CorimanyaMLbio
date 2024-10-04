@@ -8,9 +8,10 @@ library(rpart) #to fit CARTs
 library(rpart.plot) #for plotting classification trees
 library(ipred)
 library(randomForest)
-
 ## Import yeast data for assignment
 yeast<-read.csv("yeast.data.csv")
+
+##### DATA EXPLORATION ####
 ##ensure response is a factor
 yeast$localization_site <- as.factor(yeast$localization_site)
 #inspect data
@@ -33,7 +34,9 @@ correlation_matrix <- cor(numeric_data)
 ##Plot the correlation matrix as a heatmap
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,
-         type = "upper")                 
+         type = "upper")
+
+##### DATA PREPARATION #####
 ## All variables are quite different! Only need to remove the ID column
 yeast<-yeast[,-1]
 
@@ -42,6 +45,7 @@ y_perm <- yeast[sample(dim(yeast)[1],dim(yeast)[1], replace = FALSE),]
 y_train <- y_perm[1:floor(0.75*(dim(yeast)[1])),]
 y_vault <- y_perm[(floor(0.75*(dim(yeast)[1]))+1):(dim(yeast)[1]),]
 
+##### MAIN ANALYSIS #####
 ## Fit default CART to training data
 m <- rpart(localization_site~.,y_train, method = "class")
 m
@@ -145,7 +149,7 @@ mean(x_err_b) #0.4267535
 ## The out of sample error after cross validation was 42.6735% in the bagging model and 42.7638%
 ## in the pruned tree (the next best model).
 
-# Random Forest
+## Random Forests
 mrf <- randomForest(localization_site~.,y_train, ntrees = 1000)
 mrf$err.rate
 mrf_pred<-predict(mrf, y_train, type = "class")
@@ -161,7 +165,9 @@ for (counter in 1:nfolds){
 }
 mean(x_err_rf) #0.3782014
 
-## The random forest model is the best so far if you do not consider the "perfect" (overfit)
-## Complex tree. At 37.82% error after cross validation, classification errors
-## happen less frequently than in the next best model which was achieved through bagging
-## and had an error rate of 42.67%
+## The random forest algorithm is the best so far if you do not consider the "perfect" (overfit)
+## complex tree. At 37.82% error after cross validation, classification errors
+## happen less frequently than in the next best algorithm,
+##which was achieved through bagging and had an error rate of 42.67%.
+
+## Boosting

@@ -220,3 +220,20 @@ mean(xerr_xgb) #0.3916828
 ## However, given that the best algorithm still misclassifies the training data 37% of the time
 ## None of the methods I've tried in the CART unit are totally appropriate for
 ## predicting the protein site on yeast cells.
+
+mean(xerr)
+mean(xerr_f)
+mean(xerr_b)
+mean(xerr_pr)
+mean(xerr_rf) #0.3782014, best model!
+mean(xerr_ada)#0.40
+mean(xerr_xgb)#0.39
+
+### Testing best model on test dataset!!
+testpred_rf<-predict(mrf,y_vault[,1:8],type="class")
+sum(testpred_rf!=y_vault$localization_site)/dim(y_vault)[1] #0.3746631
+
+## The random forest model performed equally well on the training and test dataset!
+## This is great news from an overfitting perspective!
+## The news is not so great for yeast protein classification overall, 
+## given the 37% error rate from the testing and training dataset!

@@ -177,3 +177,55 @@ for (counter in 1:numgp) {
 mean(xerr_rf) #0.07264673
 
 ##random forest is worse than bagging, but better than pruned, simple, and full tree
+
+### Boosting
+install.packages("adabag")
+library(adabag)
+m_ada <- boosting(diagnosis~.,d_val)
+m_ada
+m_ada$weights
+ada_pred<-predict(m_ada, d_val[,2:dim(d_val)[2]])$class
+sum(ada_pred!=d_val$diagnosis)/dim(d_val)[1] #0
+
+xerr_ada <- NA*numeric(numgp)
+
+for (counter in 1:numgp){
+  m_ada <- boosting(diagnosis~.,data =d_val[counter!=gp,])
+  ada_pred <- predict(m_ada,d_val[counter == gp,], type = "class")$class
+  xerr_ada[counter] <-sum(ada_pred!=d_val$diagnosis[counter == gp])/
+    sum(gp == counter)
+}
+mean(xerr_ada) #0.05398671
+
+#gradient boosting
+install.packages("xgboost")
+library(xgboost)
+## convert from categorical to integer
+x_val<-as.matrix(d_val[,2:(dim(d_val)[2])])
+y_val<-as.integer(d_val[,1])-1
+
+m_xgb <- xgboost(data = x_val, label = y_val, max_depth =6,
+                 eta=0.3,nrounds = 20,objective="binary:logistic",
+                 nthread =2,verbose=2)
+xgb_pred <- predict(m_xgb, x_val)
+# Convert probabilities to class predictions (threshold 0.5)
+xgb_class_pred <- ifelse(xgb_pred > 0.5, 1, 0)
+# Calculate classification error
+xgb_error <- sum(xgb_class_pred != y_val) / length(y_val)
+xgb_error
+
+#x val
+xerr_xgb<- NA*numeric(numgp)
+
+for (counter in 1:numgp){
+  m_xgb <- xgboost(data = x_val[counter!=gp,], label = y_val[counter !=gp], max_depth =6,
+                   eta=0.3,nrounds = 20,objective="binary:logistic",
+                   nthread =2,verbose=2)
+  xgb_pred <- predict(m_xgb, x_val[counter==gp,])
+  # Convert probabilities to class predictions (threshold 0.5)
+  xgb_class_pred <- ifelse(xgb_pred > 0.5, 1, 0)
+  # Calculate classification error
+  xgb_error[counter] <- sum(xgb_class_pred != y_val[counter ==gp]) / sum(counter ==gp)
+}
+
+mean(xgb_error) #0.05636766

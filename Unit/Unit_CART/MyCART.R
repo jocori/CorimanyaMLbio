@@ -1,4 +1,11 @@
+#DAN: Overall: This is good work. You did everything, and got mostly correct results.
+#There is a bug (identified below) in your x-val for the full CART. It seems you
+#mostly copied my code and modified it, since you used the same variables names and
+#other details. This is allowed, but definitely not recommended!
+#Score: S.
+
 ## Set working directory to class folder
+#DAN: This setwd only works on your machine!
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/Unit_CART")
 #set seed for reproducibility
 set.seed(123)
@@ -38,6 +45,7 @@ correlation_matrix <- cor(numeric_data)
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,
          type = "upper")
+#DAN: Again, nice and thorough data exploration!
 
 ##### DATA PREPARATION #####
 ## All variables are quite different! Only need to remove the ID column
@@ -55,6 +63,7 @@ m
 m_pred <- predict(m, type = "class")
 table(m_pred, y_train$localization_site) #table of predicted vs real 
 sum(m_pred!=y_train$localization_site)/dim(y_train)[1] #error = 0.4043127
+#DAN: Nice you can see specific categories which are confused with specific others.
 # plot the tree
 prp(m)
 
@@ -62,7 +71,7 @@ prp(m)
 m_f <- rpart(localization_site~.,y_train, method = "class",control =
              rpart.control(minsplit = 1,cp = 0))
 m_f
-prp(m_f)
+prp(m_f) #DAN: This function did not work on my machine
 #predicted values
 mf_pred <- predict(m_f, type = "class")
 table(mf_pred, y_train$localization_site)
@@ -74,10 +83,16 @@ folds <- rep(1:nfolds, length.out = dim(y_train)[1])
 x_err <- NA*numeric(nfolds)
 x_err_f <- NA*numeric(nfolds)
 
+#DAN: Since you used the same variables names and other details as me, it seems possible that you copied
+#my code and then modified it for your data. This is allowed, but discouraged. In future
+#I suggest avoiding doing that, as its not a good way to learn. 
 for (counter in 1:nfolds){
   m <- rpart(localization_site~.,y_train[folds!=counter,], method = "class")
   mf<- rpart(localization_site~.,y_train[folds!=counter,], method = "class",control =
                      rpart.control(minsplit = 1,cp = 0))
+  #DAN: There is a bug here that invalidates your m_f results. In line 85, you call it mf, and
+  #below you call it m_f. Two different things. So you were actually getting predictions from
+  #a different model, that's why the (incorrect) x-val score of 0.  
   m_pred <- predict(m, y_train[ folds== counter,],type = "class")
   mf_pred <- predict(m_f, y_train[folds==counter,] ,type = "class")
   x_err[counter] <- sum(m_pred!=y_train$localization_site[folds == counter])/
@@ -97,6 +112,8 @@ mean(x_err_f) #0
 ## The out of sample error is higher than the within sample error. For the full tree,
 ## The out of sample error and within sample error are each 0.
 ## This suggests that the full tree is vastly overfit!
+#DAN: No, that's not what it would suggest, if it were true (it isn't - see above comments
+#which identifies a bug). An x-val score of 0 means a good model, not an overfitted one!
 ## The simple tree performed similarly within sample and out of sample, 
 ## though the error rate is slightly lower within sample. 
 
@@ -122,15 +139,19 @@ for (counter in 1:nfolds){
 mean(x_err_pr) #0.4276384
 ## So far, my best model is the pruned tree if you only consider cross-validation results
 ## and if you note that the error was lowest for the full tree, BUT it was 0 error
-## indicating overfitting. Therefore, I would not call that model the best
+## indicating overfitting. 
+#DAN: Nope, see my previous comments
+## Therefore, I would not call that model the best
 ## even though it is "perfect".
+#DAN: The mismatch between the x-val score you obtained and the right-most side of 
+#the plotcp(m_f) could have alerted you to a bug!
 
 ## Bagging
 mb<-bagging(localization_site~.,y_train, nbagg = 500, coob = TRUE,
         method = "class",
         control = rpart.control(minsplit = 1, cp = 0, xval = 0),
         aggregation = "majority")
-mb$err #0.4267745
+mb$err #0.4267745 
 pred_b <- predict(mb, y_train, type = "class", aggregation = "majority")
 sum(pred_b!=y_train$localization_site)/dim(y_train)[1] #0
 

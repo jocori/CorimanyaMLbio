@@ -1,4 +1,6 @@
 ##Set working directory
+#DAN: Typically use *relative* addressing for loading data and store it in the same
+#repo, so when someone clones your repo it still works for them. Ask or look up if not clear.
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/Unit_CART")
 ##Read in breast cancer data
 data<- read.csv("data.csv")
@@ -15,6 +17,7 @@ for (i in colnames) {
 }
 
 ##Check correlation between each pair of variables by building a correlation matrix
+#DAN: The "cor" function will build the whole matrix for you in one shot 
 for (i in colnames) {
   for (j in colnames) {
     # Check if both columns are numeric and not the same column
@@ -47,6 +50,8 @@ dev.off()
 
 ##Missing values?
 is.na(data)
+
+#DAN: This is nice and thorough!
 
 ##Remove ID and worst columns
 head(data)

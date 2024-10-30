@@ -30,9 +30,9 @@ correlation_matrix <- cor(numeric_data)
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,
          type = "upper")
-.3 v .5, .7 v .9, .9 v .11, .11 v .13, .15 v .17
+#.3 v .5, .7 v .9, .9 v 11, 11 v 13, 15 v 17
 #remove highly correlated predictor variables and recordID column
-frog<-frog[, !(names(frog) %in% c("MFCCs_.5","MFCCs_.9","MFCCs_11","MFCCs_17","RecordID"))]
+frog<-frog[, !(names(frog) %in% c("MFCCs_.5","MFCCs_.9","MFCCs_11","MFCCs_17","RecordID","Family","Genus"))]
 
 #shuffle the data and split into training and validation sets
 f_split <- frog %>%
@@ -49,7 +49,8 @@ f_vault <- f_split %>% filter(split == "vault") %>% select(-split)
 #method = 'vglmAdjCat'
 #Tuning parameters: parallel (Parallel Curves),link (Link Function)
 library(VGAM)
-
+tunegrid<- data.frame(parallel ="T", link ="gaussian")
+train(f_train, f_train$Species, preProcess = c("center","scale"), method = 'vglmAdjCat', tuneGrid = NULL)
 ## Factor-Based Linear Discriminant Analysis
 # method = 'RFlda'
 #Tuning parameters: q (# of factors)

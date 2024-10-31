@@ -15,16 +15,9 @@
 set.seed(123)
 
 #load packages
-library(plyr) # for relaxed lasso
+#library(plyr) # for relaxed lasso
 library(dplyr) #for data organization
-library(caret) #for modelling
 library(corrplot) #for plotting correlation matrix
-library(doParallel) #parallel processing
-library(brnn) #for Bayesian Regularized Neural Networks
-library(elasticnet) #for Elasticnet
-library(fastICA) #for Independent Component Regression
-library(leaps) #for Linear Regression with Stepwise Selection
-library(monomvn) #for Bayesian Ridge Regression
 
 #set working directory
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/UnitCARET")
@@ -67,6 +60,15 @@ w_train <- w_split %>% filter(split == "train") %>% select(-split)
 w_vault <- w_split %>% filter(split == "vault") %>% select(-split)
 y_train <- w_train[,12] # y value, response
 x_train <- w_train[,1:11] #predictor variables
+
+#load more packages that cause bugs if I load them earlier
+library(caret) #for modelling
+library(doParallel) #parallel processing
+library(brnn) #for Bayesian Regularized Neural Networks
+library(elasticnet) #for Elasticnet
+library(fastICA) #for Independent Component Regression
+library(leaps) #for Linear Regression with Stepwise Selection
+library(monomvn) #for Bayesian Ridge Regression
 
 #speed up run time by doing parallel processing
 
@@ -121,3 +123,4 @@ for (i in 1:length(mods)){
 print(models)
 #put core use back to normal settings
 stopCluster(cl)
+write.csv(models, "reg_mods.csv")

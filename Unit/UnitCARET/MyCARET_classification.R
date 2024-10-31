@@ -92,7 +92,7 @@ for (i in 1:length(mods)){
 
 #set tune length for each model based on number of tuning parameters
 tune.l <- c(1, #rocc
-            1, #RFlda
+            5, #RFlda
             2, #glmnet
             1, #C5.0Rules
             1, #rpart
@@ -124,7 +124,7 @@ for (i in 1:length(mods)){
   models$KappaSD[i] <- best$KappaSD
 }
 models
-
-
+#RFLDA is best...increasing from tune length of 1 to 5
+#RFlda accuracy did not change at all
 stopCluster(cl)
 

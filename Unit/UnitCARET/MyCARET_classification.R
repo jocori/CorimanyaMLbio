@@ -127,4 +127,4 @@ models
 #RFLDA is best...increasing from tune length of 1 to 5
 #RFlda accuracy did not change at all
 stopCluster(cl)
-
+write.csv(models, "class_mods.csv")

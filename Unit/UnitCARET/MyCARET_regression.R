@@ -24,7 +24,7 @@ library(brnn) #for Bayesian Regularized Neural Networks
 library(elasticnet) #for Elasticnet
 library(fastICA) #for Independent Component Regression
 library(leaps) #for Linear Regression with Stepwise Selection
-library(relaxo) #for Relaxed Lasso
+library(monomvn) #for Bayesian Ridge Regression
 
 #set working directory
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/UnitCARET")
@@ -54,7 +54,7 @@ correlation_matrix <- cor(numeric_data)
 corrplot(correlation_matrix, method = "color", 
          tl.col = "black", tl.srt = 45,
          type = "upper")
-
+#no evidence of autocorreltation
 #shuffle the data and split into training and validation sets
 w_split <- wine %>%
   sample_frac(size = 1) %>%  #shuffle the entire dataset
@@ -63,14 +63,14 @@ w_split <- wine %>%
   select(-row_number)  #drop the row number column
 
 #create the training and validation datasets
-w_train <- f_split %>% filter(split == "train") %>% select(-split)
-w_vault <- f_split %>% filter(split == "vault") %>% select(-split)
-y_train <- f_train[,] # y value, response
-x_train <- f_train[,] #predictor variables
+w_train <- w_split %>% filter(split == "train") %>% select(-split)
+w_vault <- w_split %>% filter(split == "vault") %>% select(-split)
+y_train <- w_train[,12] # y value, response
+x_train <- w_train[,1:11] #predictor variables
 
 #speed up run time by doing parallel processing
 
-cl <- makePSOCKcluster(5) #the argument is basically the number of cores/processes to use
+cl <- makePSOCKcluster(3) #the argument is basically the number of cores/processes to use
 registerDoParallel(cl)
 
 #k-fold cross validation through caret
@@ -79,7 +79,7 @@ mods <- c("brnn",#Bayesian Regularized Neural Networks, 1 tuning parameter
           "enet",#Elasticnet, 2 tuning parameters
           "icr",#Independent Component Regression, 1 tuning parameter
           "leapSeq", #Linear Regression with Stepwise Selection, 1 tuning parameter
-          "relaxo" #Relaxed Lasso, 2 tuning parameters
+          "bridge" #Bayesian Ridge Regression, No tuning parameters for this model
           )
 
 #look up all the models
@@ -88,36 +88,36 @@ for (i in 1:length(mods)){
 }
 
 #tune length based on number of tuning parameters
-tune.l <- c(1, #brnn
+tune.l <- c(5, #brnn
             2, #enet
             1, #icr
             1, #leapSeq
-            2) #relaxo
+            1) #bridge
 
 results <- list() # a list in which to store results
 
 #dataframe to save best results
-models<-data.frame(model = mods, 
-                   Accuracy = NA*numeric(length(mods)),
-                   Kappa=NA*numeric(length(mods)),
-                   AccuracySD=NA*numeric(length(mods)),
-                   KappaSD=NA*numeric(length(mods)))
+models <- data.frame(model = mods, 
+                     RMSE = NA, 
+                     Rsquared = NA, 
+                     RMSESD = NA, 
+                     RsquaredSD = NA)
 
 #run models
 for (i in 1:length(mods)){
   #train models with caret and get error by k-fold by cross validation
   m<-train(x = x_train, y = y_train, method = mods[i], preProcess = c("center","scale"),
-           tuneLength = tune.l[i], trControl = cont)
+           tuneLength = tune.l[i], trControl = cont,metric = "RMSE")
   #store model results
   results[[mods[i]]] <- m
   #extract and store best results
-  best <- m$results[which.max(m$results$Accuracy),]
+  best <- m$results[which.min(m$results$RMSE),] 
   #save best results in the models dataframe
-  models$Accuracy[i] <- best$Accuracy
-  models$Kappa[i] <- best$Kappa
-  models$AccuracySD[i] <- best$AccuracySD
-  models$KappaSD[i] <- best$KappaSD
+  models$RMSE[i] <- best$RMSE
+  models$Rsquared[i] <- best$Rsquared
+  models$RMSESD[i] <- best$RMSESD
+  models$RsquaredSD[i] <- best$RsquaredSD
 }
-
+print(models)
 #put core use back to normal settings
 stopCluster(cl)

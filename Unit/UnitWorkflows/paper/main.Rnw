@@ -1,0 +1,64 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\title{Testing the urban dulling hypothesis in an iridescent passerine bird}
+\author{Joanna Corimanya\thanks{Department of Ecology and Evolutionary Biology, University of Kansas, Lawrence, KS, USA}}
+\date{\today}
+
+\begin{document}
+
+
+\maketitle
+
+\section{Introduction}
+In this study, we test the occurrence of urban dulling in an introduced iridescent species concurrently with two potential mechanisms that could lead to urban dulling—condition-dependence and increased investment in preening—which, to our knowledge, has never been done. We use the European Starling \textit{(Sturnus vulgaris)} as our study species, as they are widespread in rural and urban habitats, and males and females exhibit iridescent plumage.
+
+In males, who are especially iridescent, these feathers are an honest signal for quality in male-male competition for nest sites and for attracting females to partially built nests \cite{Feare1984, Swaddle1994}. Males and females have similar plumage, aside from the throat feathers of males that grow longer with age \cite{Komdeur2005} and serve as an index of individual quality during mate selection \cite{Swaddle1994}. A male’s throat feathers, which can be puffed out, are the plumage region most critically assessed by conspecifics during pair formation and territorial defense \cite{Griggio2011}. Females rank males during mate selection predominantly by plumage reflectance in ultraviolet (UV) wavelengths, thus indicating the importance of including the UV spectrum when analyzing feather color \cite{Bennett1997}.
+
+Given the often-harsh urban selective environment and potential relative structural weakness of iridescent plumage, we hypothesized that the urban dulling effect occurs in European Starlings. If this is true, urban starlings should be duller, with lower mean brightness, full width half maximum, ultraviolet chroma, and peak wavelength, than rural starlings. One possible mechanism for this pattern would be that urban starlings invest more energy into preening than rural starlings, leading to duller feathers. An alternative possibility is that urban starlings are in worse condition than rural ones, leading to duller feathers. We explore correlations between feather reflectance, urbanization, preening, and body condition to test these non-mutually exclusive possibilities.
+
+\section{Methods}
+\subsection{Field sites}
+We studied breeding European Starlings in their introduced distribution from study sites that ranged from more urban to less urban across two years. We monitored 45 nest boxes each at our two rural sites in Cartersville, GA: the Gaines Cattle Farm (monitored in 2021) and Sam Smith Park (monitored in 2022). Our urban sites included Big Shanty Park in Kennesaw, GA, with 40 nest boxes, and the Kennesaw State University Field Station in Acworth, GA, with 35 nest boxes (both sites monitored in 2021 and 2022). 
+
+\subsection{Brightness calculation}
+The formula we used to calculate brightness is the mean brightness across the reflectance spectrum as shown in Equation~\ref{eq:brightness}.
+\begin{equation}
+B_2 = \frac{1}{\lambda_{\text{max}} - \lambda_{\text{min}}} \int_{\lambda_{\text{min}}}^{\lambda_{\text{max}}} R(\lambda) \, d\lambda
+\end{equation}
+
+where:
+\begin{itemize}
+  \item \(R(\lambda)\) is the relative reflectance at wavelength \(\lambda\),
+  \item \(\lambda_{\text{min}}\) and \(\lambda_{\text{max}}\) define the spectral range of interest.
+\end{itemize}
+
+\section{Results}
+
+Figure~\ref{fig:results-plot} shows how the relationship between body condition and mean brightness differs among rural and urban starlings, which are described in Section~\ref{sec:Methods}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{../results/Rplot.png}
+\caption{The relationship between body condition and mean brightness for rural and urban starlings.}
+\label{fig:results-plot}
+\end{figure}
+
+
+\section{Discussion}
+The model results demonstrate the impact of urbanization on feather brightness and the complicated relationship with nutritional condition and preening. For more detailed analysis, see the Supplementary Information in Table~\ref{tab:model-summaries}.}.
+
+\section{Conclusion}
+This is a toy workflow for practicing reproducible research.
+
+\appendix
+
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+
+\end{document}

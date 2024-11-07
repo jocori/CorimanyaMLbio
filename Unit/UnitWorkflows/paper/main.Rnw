@@ -48,7 +48,7 @@ Figure~\ref{fig:results-plot} shows how the relationship between body condition 
 
 
 \section{Discussion}
-The model results demonstrate the impact of urbanization on feather brightness and the complicated relationship with nutritional condition and preening. For more detailed analysis, see the Supplementary Information in Table~\ref{tab:model-summaries}.}.
+The model results demonstrate the impact of urbanization on feather brightness and the complicated relationship with nutritional condition and preening. For more detailed analysis, see the Supplementary Information in Table~\ref{tab:model-summaries}.
 
 \section{Conclusion}
 This is a toy workflow for practicing reproducible research.

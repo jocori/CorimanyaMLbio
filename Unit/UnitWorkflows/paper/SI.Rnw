@@ -1,0 +1,34 @@
+%!TeX program = pdflatex
+%!Rnw weave = knitr
+\documentclass{article}
+
+\begin{document}
+
+
+
+
+<<setup, include=FALSE>>=
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE, results = 'asis', message = FALSE, warning = FALSE)
+@
+
+\section{Model Summaries}
+
+<<echo=FALSE, results='asis'>>=
+# Load libraries
+library(here)
+library(kableExtra)
+library(readr)
+
+# Read the CSV file
+model_summaries <- read_csv(here("results", "model_summaries.csv"))
+
+# Generate and display the table
+kable(model_summaries, 
+      caption = "Model summaries for fixed effects, including t-values, p-values, and confidence intervals.",
+      col.names = c("Term", "Model", "Fixed Effects", "t-value", "p-value", "Confidence Interval"),
+      booktabs = TRUE) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down"))
+@
+\label{tab:model-summaries}
+\end{document}

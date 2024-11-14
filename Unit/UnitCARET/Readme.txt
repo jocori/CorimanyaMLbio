@@ -1,3 +1,5 @@
+#DAN: Good idea to have a sheet like this so you remember in 6 months where you got the data.
+
 Data Set Name: Anuran Calls (MFCCs)
 
 Abstract: (less than 200 characters).

@@ -1,3 +1,9 @@
+#DAN: Overall, great job, the code is good and looks right. I appreciated your write up.
+#Just one mistake, I believe you selected the *worst* classification model instead of the best!
+#Accuracy should be maximized. Grade: S+ 
+
+#DAN: Nice header, nice well-organized code. 
+
 #Caret Regression assignment for machine learning
 #Joanna Corimanya
 

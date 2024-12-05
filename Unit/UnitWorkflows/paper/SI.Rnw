@@ -24,6 +24,9 @@ library(readr)
 model_summaries <- read_csv(here("results", "model_summaries.csv"))
 
 # Generate and display the table
+#DAN: Yeah, technically you can use R markdown and kable. But it stinks. You have much better control
+#with no real additional effort (once you learn it) by using xtable.
+
 kable(model_summaries, 
       caption = "Model summaries for fixed effects, including t-values, p-values, and confidence intervals.",
       col.names = c("Term", "Model", "Fixed Effects", "t-value", "p-value", "Confidence Interval"),

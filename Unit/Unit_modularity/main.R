@@ -1,3 +1,7 @@
+#DAN: Overall pretty good, but you should pay a bit more attention to getting the code to
+#run on another person's machine when they clone it. See comments. 
+#Grade: S
+
 ## Modularity assignment
 #
 ## Joanna Corimanya
@@ -5,6 +9,11 @@
 #
 # Set up
 setwd("~/Desktop/KU/Classes/machine_learning/CorimanyaMLbiol/Unit/Unit_modularity")
+#DAN: You should devote some thought to what will run when the repo is cloned to another machine.
+#Absolute addressing does not work on another machine. Reading in data not committed to you repo 
+#also won't work. One way to tell if your code will run on another machine is to clone your
+#repo onto another place on your own machine and see if it'll run there from the fresh clone.
+
 library(dplyr) #tidyverse for data management
 library(maps) #for making maps
 ## Read in data
@@ -29,6 +38,7 @@ colnames(temp)[5]<-"temp"
 # This is also true for the inputs and outputs. 
 #So, I knew exactly what needed to go in and come out of each function before ever coding it up. 
 # It also helped me to figure out the best way to split the modules into separate pieces.
+#DAN: The above looks like a copy of my comment in my code, not your own. Not recommended.
 
 ## 1. Filter locations to only ones with at least 40 measurements
 ### input: data: dataset with precipitation and temperature data, var_name (variable name as string ("temp" or "precip")),
@@ -132,9 +142,10 @@ analysis <- function(data, var_name) {
 # The first version I wrote of this code looped through temperature and precipitation, 
 # eliminating the need to call the datasets separately. 
 # However, the code was much more convoluted, and I revised it to the streamlines approach you now see.
+#DAN: Great.
 
 #run the analysis on precipitation data
 analysis(precip, "precip")
 #run the analysis on temperature data
 analysis(temp, "temp")
-
+#DAN: This is good

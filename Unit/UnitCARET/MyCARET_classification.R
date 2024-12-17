@@ -55,6 +55,8 @@ corrplot(correlation_matrix, method = "color",
 #remove highly correlated predictor variables and recordID column
 frog<-frog[, !(names(frog) %in% c("MFCCs_.5","MFCCs_.9","MFCCs_11","MFCCs_17","RecordID","Family","Genus"))]
 
+#DAN: Good idea to investigate the data a bit
+
 #shuffle the data and split into training and validation sets
 f_split <- frog %>%
   sample_frac(size = 1) %>%  #shuffle the entire dataset
@@ -125,6 +127,7 @@ for (i in 1:length(mods)){
 }
 models
 #RFLDA is best...increasing from tune length of 1 to 5
+#DAN: I dunno, based on your write-up it looks like RFLDA has the *lowest* accuracy, not the highest. Right? So, not the best, actually the worst.
 #RFlda accuracy did not change at all
 stopCluster(cl)
 write.csv(models, "class_mods.csv")

@@ -24,8 +24,7 @@ def generate_latex_report():
 
     # Section: Data Description
     with doc.create(Section('Data Description')):
-        doc.append("The dataset used for this analysis is a mushroom dataset consisting of features such as cap size, stem dimensions, and categorical properties. "
-                   "The target variable is whether the mushroom is edible or poisonous.")
+        doc.append("This data is from Denis Wagner in 2020. The Mushroom species are from the 1999 Patrick Hardin book “Mushrooms and Toads.” The dataset includes 173 different mushroom species from diverse families. Each species is identified as poisonous, edible, or unknown. There are 17 nominal variables and 3 metric variables.")
 
         doc.append("Data preprocessing included:")
         doc.append(NoEscape(r"\begin{itemize}"))
